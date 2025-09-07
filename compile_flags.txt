@@ -1,0 +1,12 @@
+-Wextra
+-Werror
+-Wall
+-Wimplicit
+-pedantic
+-Wreturn-type
+-Wformat
+-Wmissing-prototypes
+-Wstrict-prototypes
+-std=c89
+-I
+include/
