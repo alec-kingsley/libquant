@@ -1,7 +1,7 @@
 #include "matrix.h"
 #include "reporter.h"
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 struct Matrix {
@@ -14,6 +14,7 @@ struct Matrix {
 /**
  * Triangularize a matrix, such that no values are above or to the right of
  * the top-left <-> bottom-right diagonal.
+ * Maintain the same determinant.
  */
 static void matrix_triangularize(Matrix *matrix);
 
@@ -22,6 +23,16 @@ static void matrix_triangularize(Matrix *matrix);
  */
 static void matrix_subtract_row(Matrix *matrix, size_t dest_idx, size_t src_idx,
                                 mat_t multiple);
+
+/**
+ * Swap two rows in matrix.
+ */
+static void matrix_swap_rows(Matrix *matrix, size_t idx_a, size_t idx_b);
+
+/**
+ * Multiply a row by a scalar value.
+ */
+static void matrix_multiply_row(Matrix *matrix, size_t idx, mat_t scalar);
 
 size_t matrix_height(Matrix *matrix) { return matrix->height; }
 
@@ -53,6 +64,33 @@ static void matrix_subtract_row(Matrix *matrix, size_t dest_idx, size_t src_idx,
     }
 }
 
+static void matrix_swap_rows(Matrix *matrix, size_t idx_a, size_t idx_b) {
+    const size_t width = matrix_width(matrix);
+    mat_t temp;
+    mat_t *a = matrix->values + width * (idx_a - 1);
+    mat_t *b = matrix->values + width * (idx_b - 1);
+    size_t i;
+
+    if (idx_a == idx_b) {
+        return;
+    }
+
+    for (i = 0; i < width; i++) {
+        temp = a[i];
+        a[i] = b[i];
+        b[i] = temp;
+    }
+}
+
+static void matrix_multiply_row(Matrix *matrix, size_t idx, mat_t scalar) {
+    const size_t width = matrix_width(matrix);
+    mat_t *a = matrix->values + width * (idx - 1);
+    size_t i;
+    for (i = 0; i < width; i++) {
+        a[i] = MAT_T_MUL(a[i], scalar);
+    }
+}
+
 static void matrix_triangularize(Matrix *matrix) {
     const size_t height = matrix_height(matrix);
     const size_t width = matrix_width(matrix);
@@ -64,11 +102,25 @@ static void matrix_triangularize(Matrix *matrix) {
     }
 
     for (src_idx = height; src_idx > 1; src_idx--) {
-        /* TODO - swap non-zero-ended row into src */
+        /* ensure that the src idx row has a non-zero element at its end */
+        for (dest_idx = src_idx; dest_idx >= 1; dest_idx--) {
+            if (!MAT_T_EQ(MAT_T_0, matrix_get(matrix, dest_idx, src_idx))) {
+                if (dest_idx != src_idx) {
+                    matrix_swap_rows(matrix, src_idx, dest_idx);
+                    /* swapping rows multiplies determinant by -1, so this needs to be undone */
+                    matrix_multiply_row(matrix, src_idx, MAT_T(-1.0));
+                }
+                break;
+            }
+        }
+
         for (dest_idx = 1; dest_idx < src_idx; dest_idx++) {
-            multiple = MAT_T_DIV(matrix_get(matrix, dest_idx, src_idx),
-                                 matrix_get(matrix, src_idx, src_idx));
-            matrix_subtract_row(matrix, dest_idx, src_idx, multiple);
+            /* set desired element of target row to 0 */
+            if (!MAT_T_EQ(MAT_T_0, matrix_get(matrix, dest_idx, src_idx))) {
+                multiple = MAT_T_DIV(matrix_get(matrix, dest_idx, src_idx),
+                                     matrix_get(matrix, src_idx, src_idx));
+                matrix_subtract_row(matrix, dest_idx, src_idx, multiple);
+            }
         }
     }
 }
@@ -160,7 +212,7 @@ void matrix_print(Matrix *matrix) {
     for (i = 0; i < width; i++) {
         printf("      ");
     }
-    puts( "┐");
+    puts("┐");
     for (i = 1; i <= height; i++) {
         printf("| ");
         for (j = 1; j <= width; j++) {

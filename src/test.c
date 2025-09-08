@@ -165,7 +165,7 @@ test_matrix_height_skip_remaining_tests:
 }
 
 int test_matrix_determinant(void) {
-    const int test_ct = 3;
+    const int test_ct = 4;
     int tests_left = test_ct;
     int tests_failed = 0;
     Matrix *matrix;
@@ -181,7 +181,7 @@ int test_matrix_determinant(void) {
     tests_left--;
     matrix_destroy(matrix);
 
-    printf("  2x2 matrix_determinant test: ");
+    printf("  2x2 matrix_determinant test 1: ");
     matrix = matrix_create(2, 2);
     if (matrix == NULL)
         goto test_matrix_determinant_skip_remaining_tests;
@@ -193,6 +193,21 @@ int test_matrix_determinant(void) {
     matrix_set(matrix, 2, 2, MAT_T(3.0));
 
     tests_failed += mat_t_assert_equal(7.0, matrix_determinant(matrix)) != 0 ? 1 : 0;
+    tests_left--;
+    matrix_destroy(matrix);
+
+    printf("  2x2 matrix_determinant test 2: ");
+    matrix = matrix_create(2, 2);
+    if (matrix == NULL)
+        goto test_matrix_determinant_skip_remaining_tests;
+
+    matrix_set(matrix, 1, 1, MAT_T(5.0));
+    matrix_set(matrix, 1, 2, MAT_T(2.0));
+
+    matrix_set(matrix, 2, 1, MAT_T(4.0));
+    matrix_set(matrix, 2, 2, MAT_T(0.0));
+
+    tests_failed += mat_t_assert_equal(-8.0, matrix_determinant(matrix)) != 0 ? 1 : 0;
     tests_left--;
     matrix_destroy(matrix);
 
