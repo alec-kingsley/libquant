@@ -18,11 +18,13 @@ size_t matrix_height(Matrix *matrix);
 
 /**
  * Set the value in the matrix at row `i`, column `j` to `value`.
+ * Matrices are indexed row-first and 1-indexed.
  */
 void matrix_set(Matrix *matrix, size_t i, size_t j, mat_t value);
 
 /**
  * Get row `i`, column `j` from the matrix.
+ * Matrices are indexed row-first and 1-indexed.
  */
 mat_t matrix_get(Matrix *matrix, size_t i, size_t j);
 
@@ -47,5 +49,10 @@ Matrix *matrix_create(size_t height, size_t width);
  * Destroy the Matrix.
  */
 void matrix_destroy(Matrix *matrix);
+
+/**
+ * Print the Matrix.
+ */
+void matrix_print(Matrix *matrix);
 
 #endif

@@ -53,8 +53,8 @@ int matrix_assert_equal(Matrix *a, Matrix *b) {
         success = false;
         printf(RED "Failure: heights differ" RESET "\n");
     } else {
-        for (i = 0; i < matrix_height(a) && success; i++) {
-            for (j = 0; j < matrix_width(a) && success; j++) {
+        for (i = 1; i <= matrix_height(a) && success; i++) {
+            for (j = 1; j <= matrix_width(a) && success; j++) {
                 if (!MAT_T_EQ(matrix_get(a, i, j), matrix_get(b, i, j))) {
                     success = false;
                     printf(RED "Failure: matrices differ at (%li, %li)" RESET
@@ -81,6 +81,12 @@ int test_matrix_width(void);
  * Return # of failed test cases.
  */
 int test_matrix_height(void);
+
+/**
+ * Tset `matrix_determinant`.
+ * Return # of failed test cases.
+ */
+int test_matrix_determinant(void);
 
 /**
  * Test `matrix_create_identity`.
@@ -158,6 +164,67 @@ test_matrix_height_skip_remaining_tests:
     return tests_failed;
 }
 
+int test_matrix_determinant(void) {
+    const int test_ct = 3;
+    int tests_left = test_ct;
+    int tests_failed = 0;
+    Matrix *matrix;
+
+    printf("Testing: matrix_determinant\n");
+
+    printf("  1x1 matrix_determinant test: ");
+    matrix = matrix_create(1, 1);
+    if (matrix == NULL)
+        goto test_matrix_determinant_skip_remaining_tests;
+    matrix_set(matrix, 1, 1, MAT_T(3.0));
+    tests_failed += mat_t_assert_equal(3.0, matrix_determinant(matrix)) != 0 ? 1 : 0;
+    tests_left--;
+    matrix_destroy(matrix);
+
+    printf("  2x2 matrix_determinant test: ");
+    matrix = matrix_create(2, 2);
+    if (matrix == NULL)
+        goto test_matrix_determinant_skip_remaining_tests;
+
+    matrix_set(matrix, 1, 1, MAT_T(5.0));
+    matrix_set(matrix, 1, 2, MAT_T(2.0));
+
+    matrix_set(matrix, 2, 1, MAT_T(4.0));
+    matrix_set(matrix, 2, 2, MAT_T(3.0));
+
+    tests_failed += mat_t_assert_equal(7.0, matrix_determinant(matrix)) != 0 ? 1 : 0;
+    tests_left--;
+    matrix_destroy(matrix);
+
+    printf("  3x3 matrix_determinant test: ");
+    matrix = matrix_create(3, 3);
+    if (matrix == NULL)
+        goto test_matrix_determinant_skip_remaining_tests;
+
+    matrix_set(matrix, 1, 1, MAT_T(1.0));
+    matrix_set(matrix, 1, 2, MAT_T(-2.0));
+    matrix_set(matrix, 1, 3, MAT_T(3.0));
+
+    matrix_set(matrix, 2, 1, MAT_T(2.0));
+    matrix_set(matrix, 2, 2, MAT_T(0.0));
+    matrix_set(matrix, 2, 3, MAT_T(3.0));
+
+    matrix_set(matrix, 3, 1, MAT_T(1.0));
+    matrix_set(matrix, 3, 2, MAT_T(5.0));
+    matrix_set(matrix, 3, 3, MAT_T(4.0));
+
+    tests_failed += mat_t_assert_equal(25.0, matrix_determinant(matrix)) != 0 ? 1 : 0;
+    tests_left--;
+    matrix_destroy(matrix);
+
+test_matrix_determinant_skip_remaining_tests:
+    printf("Failed: %i\n", tests_failed);
+    printf("Succeeded: %i\n", test_ct - tests_left - tests_failed);
+    printf("Skipped: %i\n", tests_left);
+
+    return tests_failed;
+}
+
 int test_matrix_create_identity(void) {
     const int test_ct = 2;
     int tests_left = test_ct;
@@ -169,11 +236,11 @@ int test_matrix_create_identity(void) {
     printf("  1x1 matrix_create_identity test: ");
     matrix1 = matrix_create_identity(1);
     if (matrix1 == NULL) {
-        printf(RED "Failure: Could not create" RESET "\n");
+        printf(RED "Failure: could not create" RESET "\n");
         tests_failed++;
     } else {
         tests_failed
-            += mat_t_assert_equal(matrix_get(matrix1, 0, 0), MAT_T_1) == 0 ? 1
+            += mat_t_assert_equal(matrix_get(matrix1, 1, 1), MAT_T_1) != 0 ? 1
                                                                            : 0;
         matrix_destroy(matrix1);
     }
@@ -182,14 +249,14 @@ int test_matrix_create_identity(void) {
     printf("  3x3 matrix_create_identity test: ");
     matrix1 = matrix_create_identity(3);
     matrix2 = matrix_create(3, 3);
-    matrix_set(matrix2, 0, 0, MAT_T_1);
     matrix_set(matrix2, 1, 1, MAT_T_1);
     matrix_set(matrix2, 2, 2, MAT_T_1);
+    matrix_set(matrix2, 3, 3, MAT_T_1);
     if (matrix1 == NULL || matrix2 == NULL) {
-        printf(RED "Failure: Could not create" RESET "\n");
+        printf(RED "Failure: could not create" RESET "\n");
         tests_failed++;
     } else {
-        tests_failed += matrix_assert_equal(matrix1, matrix2) == 0 ? 1 : 0;
+        tests_failed += matrix_assert_equal(matrix1, matrix2) != 0 ? 1 : 0;
     }
     matrix_destroy(matrix1);
     matrix_destroy(matrix2);
@@ -212,11 +279,11 @@ int test_matrix_create(void) {
     printf("  1x1 matrix_create test: ");
     matrix = matrix_create(1, 1);
     if (matrix == NULL) {
-        printf(RED "Failure: Could not create" RESET "\n");
+        printf(RED "Failure: could not create" RESET "\n");
         tests_failed++;
     } else {
         tests_failed
-            += mat_t_assert_equal(matrix_get(matrix, 0, 0), MAT_T_0) == 0 ? 1
+            += mat_t_assert_equal(matrix_get(matrix, 1, 1), MAT_T_0) != 0 ? 1
                                                                           : 0;
         matrix_destroy(matrix);
     }
@@ -225,7 +292,7 @@ int test_matrix_create(void) {
     printf("  2x2 matrix_create test: ");
     matrix = matrix_create(2, 2);
     if (matrix == NULL) {
-        printf(RED "Failure: Could not create" RESET "\n");
+        printf(RED "Failure: could not create" RESET "\n");
         tests_failed++;
     } else {
         printf(GREEN "Success" RESET "\n");
@@ -242,11 +309,10 @@ int test_matrix_create(void) {
 
 int main(void) {
     int total_failures = 0;
+    total_failures += test_matrix_create();
+    total_failures += test_matrix_create_identity();
     total_failures += test_matrix_width();
     total_failures += test_matrix_height();
-    total_failures += test_matrix_create_identity();
-    total_failures += test_matrix_create();
-
+    total_failures += test_matrix_determinant();
     return total_failures;
-    /* det[A - lI] = 0 */
 }

@@ -1,6 +1,7 @@
 #include "matrix.h"
 #include "reporter.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 struct Matrix {
@@ -27,22 +28,28 @@ size_t matrix_height(Matrix *matrix) { return matrix->height; }
 size_t matrix_width(Matrix *matrix) { return matrix->width; }
 
 void matrix_set(Matrix *matrix, size_t i, size_t j, mat_t value) {
-    matrix->values[i * matrix->height + j] = value;
+    if (!i || !j || i > matrix->height || j > matrix->width) {
+        report_logic_error("index out of bounds");
+    }
+    matrix->values[(i - 1) * matrix->height + j - 1] = value;
 }
 
 mat_t matrix_get(Matrix *matrix, size_t i, size_t j) {
-    return matrix->values[i * matrix->height + j];
+    if (!i || !j || i > matrix->height || j > matrix->width) {
+        report_logic_error("index out of bounds");
+    }
+    return matrix->values[(i - 1) * matrix->height + j - 1];
 }
 
 static void matrix_subtract_row(Matrix *matrix, size_t dest_idx, size_t src_idx,
                                 mat_t multiple) {
     const size_t width = matrix_width(matrix);
-    mat_t *dest = matrix->values + width * dest_idx;
-    const mat_t *src = matrix->values + width * src_idx;
+    mat_t *dest = matrix->values + width * (dest_idx - 1);
+    const mat_t *src = matrix->values + width * (src_idx - 1);
     size_t i;
 
     for (i = 0; i < width; i++) {
-        dest[i] -= MAT_T_MUL(multiple, src[i]);
+        dest[i] = MAT_T_SUB(dest[i], MAT_T_MUL(multiple, src[i]));
     }
 }
 
@@ -56,8 +63,9 @@ static void matrix_triangularize(Matrix *matrix) {
         report_logic_error("non-square matrix cannot be triangularized");
     }
 
-    for (src_idx = height - 1; src_idx > 0; src_idx--) {
-        for (dest_idx = 0; dest_idx < src_idx; dest_idx++) {
+    for (src_idx = height; src_idx > 1; src_idx--) {
+        /* TODO - swap non-zero-ended row into src */
+        for (dest_idx = 1; dest_idx < src_idx; dest_idx++) {
             multiple = MAT_T_DIV(matrix_get(matrix, dest_idx, src_idx),
                                  matrix_get(matrix, src_idx, src_idx));
             matrix_subtract_row(matrix, dest_idx, src_idx, multiple);
@@ -71,7 +79,7 @@ static Matrix *matrix_clone(Matrix *matrix) {
     Matrix *clone = matrix_create(height, width);
     if (clone == NULL)
         goto matrix_clone_fail;
-    memcpy(clone->values, matrix->values, height * width);
+    memcpy(clone->values, matrix->values, height * width * sizeof(mat_t));
     return clone;
 matrix_clone_fail:
     return NULL;
@@ -79,7 +87,7 @@ matrix_clone_fail:
 
 mat_t matrix_determinant(Matrix *matrix) {
     mat_t result = MAT_T_1;
-    size_t i = 0;
+    size_t i;
     Matrix *triangle = matrix_clone(matrix);
     if (triangle == NULL)
         goto matrix_determinant_fail;
@@ -90,12 +98,13 @@ mat_t matrix_determinant(Matrix *matrix) {
 
     matrix_triangularize(triangle);
 
-    while (i < matrix_width(triangle)) {
+    for (i = 1; i <= matrix_width(triangle); i++) {
         result = MAT_T_MUL(result, matrix_get(triangle, i, i));
     }
 
     matrix_destroy(triangle);
 
+    return result;
 matrix_determinant_fail:
     /* TODO - return some sort of error code */
     return 0;
@@ -107,7 +116,7 @@ Matrix *matrix_create_identity(size_t width) {
     if (matrix == NULL)
         goto matrix_create_identity_fail;
 
-    for (i = 0; i < width; i++) {
+    for (i = 1; i <= width; i++) {
         matrix_set(matrix, i, i, MAT_T_1);
     }
 
@@ -140,4 +149,30 @@ void matrix_destroy(Matrix *matrix) {
         free(matrix->values);
         free(matrix);
     }
+}
+
+void matrix_print(Matrix *matrix) {
+    const size_t width = matrix_width(matrix);
+    const size_t height = matrix_height(matrix);
+    size_t i, j;
+
+    printf("┌ ");
+    for (i = 0; i < width; i++) {
+        printf("      ");
+    }
+    puts( "┐");
+    for (i = 1; i <= height; i++) {
+        printf("| ");
+        for (j = 1; j <= width; j++) {
+            /* TODO - ensure equal spacing for these */
+            MAT_T_PRINT(matrix_get(matrix, i, j));
+            printf(" ");
+        }
+        puts("|");
+    }
+    printf("└ ");
+    for (i = 0; i < width; i++) {
+        printf("      ");
+    }
+    puts("┘");
 }
