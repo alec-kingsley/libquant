@@ -1,8 +1,8 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-#include <stdlib.h>
 #include "mat_t.h"
+#include <stdlib.h>
 
 typedef struct Matrix Matrix;
 

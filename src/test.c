@@ -1,7 +1,7 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include "matrix.h"
 #include "colors.h"
+#include "matrix.h"
+#include <stdbool.h>
+#include <stdio.h>
 
 /**
  * Assert two `mat_t` values are equal, and print a relevant status message.
@@ -57,7 +57,9 @@ int matrix_assert_equal(Matrix *a, Matrix *b) {
             for (j = 0; j < matrix_width(a) && success; j++) {
                 if (!MAT_T_EQ(matrix_get(a, i, j), matrix_get(b, i, j))) {
                     success = false;
-                    printf(RED "Failure: matrices differ at (%li, %li)" RESET "\n", i, j);
+                    printf(RED "Failure: matrices differ at (%li, %li)" RESET
+                               "\n",
+                           i, j);
                 }
             }
         }
@@ -102,14 +104,16 @@ int test_matrix_width(void) {
 
     printf("  1x1 matrix_width test: ");
     matrix = matrix_create(1, 1);
-    if (matrix == NULL) goto test_matrix_width_skip_remaining_tests;
+    if (matrix == NULL)
+        goto test_matrix_width_skip_remaining_tests;
     tests_failed += size_t_assert_equal(1, matrix_width(matrix)) != 0 ? 1 : 0;
     tests_left--;
     matrix_destroy(matrix);
 
     printf("  1x2 matrix_width test: ");
     matrix = matrix_create(1, 2);
-    if (matrix == NULL) goto test_matrix_width_skip_remaining_tests;
+    if (matrix == NULL)
+        goto test_matrix_width_skip_remaining_tests;
     tests_failed += size_t_assert_equal(2, matrix_width(matrix)) != 0 ? 1 : 0;
     tests_left--;
     matrix_destroy(matrix);
@@ -132,14 +136,16 @@ int test_matrix_height(void) {
 
     printf("  1x1 matrix_height test: ");
     matrix = matrix_create(1, 1);
-    if (matrix == NULL) goto test_matrix_height_skip_remaining_tests;
+    if (matrix == NULL)
+        goto test_matrix_height_skip_remaining_tests;
     tests_failed += size_t_assert_equal(1, matrix_height(matrix)) != 0 ? 1 : 0;
     tests_left--;
     matrix_destroy(matrix);
 
     printf("  2x1 matrix_height test: ");
     matrix = matrix_create(2, 1);
-    if (matrix == NULL) goto test_matrix_height_skip_remaining_tests;
+    if (matrix == NULL)
+        goto test_matrix_height_skip_remaining_tests;
     tests_failed += size_t_assert_equal(2, matrix_height(matrix)) != 0 ? 1 : 0;
     tests_left--;
     matrix_destroy(matrix);
@@ -166,7 +172,9 @@ int test_matrix_create_identity(void) {
         printf(RED "Failure: Could not create" RESET "\n");
         tests_failed++;
     } else {
-        tests_failed += mat_t_assert_equal(matrix_get(matrix1, 0, 0), MAT_T_1) == 0 ? 1 : 0;
+        tests_failed
+            += mat_t_assert_equal(matrix_get(matrix1, 0, 0), MAT_T_1) == 0 ? 1
+                                                                           : 0;
         matrix_destroy(matrix1);
     }
     tests_left--;
@@ -192,7 +200,6 @@ int test_matrix_create_identity(void) {
     printf("Skipped: %i\n", tests_left);
 
     return tests_failed;
-    
 }
 
 int test_matrix_create(void) {
@@ -208,7 +215,9 @@ int test_matrix_create(void) {
         printf(RED "Failure: Could not create" RESET "\n");
         tests_failed++;
     } else {
-        tests_failed += mat_t_assert_equal(matrix_get(matrix, 0, 0), MAT_T_0) == 0 ? 1 : 0;
+        tests_failed
+            += mat_t_assert_equal(matrix_get(matrix, 0, 0), MAT_T_0) == 0 ? 1
+                                                                          : 0;
         matrix_destroy(matrix);
     }
     tests_left--;
