@@ -107,7 +107,8 @@ static void matrix_triangularize(Matrix *matrix) {
             if (!MAT_T_EQ(MAT_T_0, matrix_get(matrix, dest_idx, src_idx))) {
                 if (dest_idx != src_idx) {
                     matrix_swap_rows(matrix, src_idx, dest_idx);
-                    /* swapping rows multiplies determinant by -1, so this needs to be undone */
+                    /* swapping rows multiplies determinant by -1, so this needs
+                     * to be undone */
                     matrix_multiply_row(matrix, src_idx, MAT_T(-1.0));
                 }
                 break;
@@ -115,6 +116,51 @@ static void matrix_triangularize(Matrix *matrix) {
         }
 
         for (dest_idx = 1; dest_idx < src_idx; dest_idx++) {
+            /* set desired element of target row to 0 */
+            if (!MAT_T_EQ(MAT_T_0, matrix_get(matrix, dest_idx, src_idx))) {
+                multiple = MAT_T_DIV(matrix_get(matrix, dest_idx, src_idx),
+                                     matrix_get(matrix, src_idx, src_idx));
+                matrix_subtract_row(matrix, dest_idx, src_idx, multiple);
+            }
+        }
+    }
+}
+
+bool matrix_is_diagonal(Matrix *matrix) {
+    const size_t width = matrix_width(matrix);
+    const size_t height = matrix_height(matrix);
+    bool is_diagonal = true;
+    size_t i, j;
+
+    if (height != width) {
+        report_logic_error(
+            "diagonalization undefined for matrix height != width");
+    }
+
+    for (i = 1; i <= width && is_diagonal; i++) {
+        for (j = 1; j <= width && is_diagonal; j++) {
+            if (i != j && !MAT_T_EQ(MAT_T_0, matrix_get(matrix, i, j))) {
+                is_diagonal = false;
+            }
+        }
+    }
+    return is_diagonal;
+}
+
+void matrix_diagonalize(Matrix *matrix) {
+    const size_t height = matrix_height(matrix);
+    const size_t width = matrix_width(matrix);
+    mat_t multiple;
+    size_t dest_idx, src_idx;
+
+    if (width != height) {
+        report_logic_error("non-square matrix cannot be diagonalized");
+    }
+
+    matrix_triangularize(matrix);
+
+    for (src_idx = height - 1; src_idx > 0; src_idx--) {
+        for (dest_idx = src_idx + 1; dest_idx <= height; dest_idx++) {
             /* set desired element of target row to 0 */
             if (!MAT_T_EQ(MAT_T_0, matrix_get(matrix, dest_idx, src_idx))) {
                 multiple = MAT_T_DIV(matrix_get(matrix, dest_idx, src_idx),

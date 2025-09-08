@@ -89,6 +89,18 @@ int test_matrix_height(void);
 int test_matrix_determinant(void);
 
 /**
+ * Tset `matrix_is_diagonal`.
+ * Return # of failed test cases.
+ */
+int test_matrix_is_diagonal(void);
+
+/**
+ * Tset `matrix_diagonalize`.
+ * Return # of failed test cases.
+ */
+int test_matrix_diagonalize(void);
+
+/**
  * Test `matrix_create_identity`.
  * Return # of failed test cases.
  */
@@ -240,6 +252,210 @@ test_matrix_determinant_skip_remaining_tests:
     return tests_failed;
 }
 
+int test_matrix_is_diagonal(void) {
+    const int test_ct = 4;
+    int tests_left = test_ct;
+    int tests_failed = 0;
+    Matrix *matrix;
+
+    printf("Testing: matrix_is_diagonal\n");
+
+    printf("  1x1 matrix_is_diagonal test: ");
+    matrix = matrix_create(1, 1);
+    if (matrix == NULL)
+        goto test_matrix_is_diagonal_skip_remaining_tests;
+    matrix_set(matrix, 1, 1, MAT_T(3.0));
+    if (matrix_is_diagonal(matrix)) {
+        printf(GREEN "Success" RESET "\n");
+    } else {
+        printf(RED "Failure: all 1x1 matrices should be diagonal" RESET "\n");
+        tests_failed++;
+    }
+    tests_left--;
+    matrix_destroy(matrix);
+
+    printf("  2x2 matrix_is_diagonal test false: ");
+    matrix = matrix_create(2, 2);
+    if (matrix == NULL)
+        goto test_matrix_is_diagonal_skip_remaining_tests;
+
+    matrix_set(matrix, 1, 1, MAT_T(5.0));
+    matrix_set(matrix, 1, 2, MAT_T(2.0));
+
+    matrix_set(matrix, 2, 1, MAT_T(4.0));
+    matrix_set(matrix, 2, 2, MAT_T(3.0));
+
+    if (!matrix_is_diagonal(matrix)) {
+        printf(GREEN "Success" RESET "\n");
+    } else {
+        printf(RED "Failure: 2x2 matrix is not diagonal" RESET "\n");
+        tests_failed++;
+    }
+    tests_left--;
+
+    matrix_destroy(matrix);
+
+    printf("  2x2 matrix_is_diagonal test true: ");
+    matrix = matrix_create(2, 2);
+    if (matrix == NULL)
+        goto test_matrix_is_diagonal_skip_remaining_tests;
+
+    matrix_set(matrix, 1, 1, MAT_T(5.0));
+    matrix_set(matrix, 1, 2, MAT_T(0.0));
+
+    matrix_set(matrix, 2, 1, MAT_T(0.0));
+    matrix_set(matrix, 2, 2, MAT_T(3.0));
+
+    if (matrix_is_diagonal(matrix)) {
+        printf(GREEN "Success" RESET "\n");
+    } else {
+        printf(RED "Failure: 2x2 matrix is diagonal" RESET "\n");
+        tests_failed++;
+    }
+    tests_left--;
+    matrix_destroy(matrix);
+
+    printf("  3x3 matrix_is_diagonal test true: ");
+    matrix = matrix_create(3, 3);
+    if (matrix == NULL)
+        goto test_matrix_is_diagonal_skip_remaining_tests;
+
+    matrix_set(matrix, 1, 1, MAT_T(1.0));
+    matrix_set(matrix, 1, 2, MAT_T(0.0));
+    matrix_set(matrix, 1, 3, MAT_T(0.0));
+
+    matrix_set(matrix, 2, 1, MAT_T(0.0));
+    matrix_set(matrix, 2, 2, MAT_T(0.0));
+    matrix_set(matrix, 2, 3, MAT_T(0.0));
+
+    matrix_set(matrix, 3, 1, MAT_T(0.0));
+    matrix_set(matrix, 3, 2, MAT_T(0.0));
+    matrix_set(matrix, 3, 3, MAT_T(4.0));
+
+    if (matrix_is_diagonal(matrix)) {
+        printf(GREEN "Success" RESET "\n");
+    } else {
+        printf(RED "Failure: 3x3 matrix is diagonal" RESET "\n");
+        tests_failed++;
+    }
+    tests_left--;
+    matrix_destroy(matrix);
+
+test_matrix_is_diagonal_skip_remaining_tests:
+    printf("Failed: %i\n", tests_failed);
+    printf("Succeeded: %i\n", test_ct - tests_left - tests_failed);
+    printf("Skipped: %i\n", tests_left);
+
+    return tests_failed;
+}
+
+int test_matrix_diagonalize(void) {
+    const int test_ct = 4;
+    int tests_left = test_ct;
+    int tests_failed = 0;
+    Matrix *matrix;
+    mat_t determinant;
+
+    printf("Testing: matrix_diagonalize\n");
+
+    printf("  1x1 matrix_diagonalize test: ");
+    matrix = matrix_create(1, 1);
+    if (matrix == NULL)
+        goto test_matrix_diagonalize_skip_remaining_tests;
+    matrix_set(matrix, 1, 1, MAT_T(3.0));
+
+    determinant = matrix_determinant(matrix);
+    matrix_diagonalize(matrix);
+    if (!matrix_is_diagonal(matrix)) {
+        tests_failed++;
+        printf(RED "Failure: matrix is not diagonal" RESET "\n");
+    } else {
+        tests_failed += mat_t_assert_equal(determinant, matrix_determinant(matrix)) != 0 ? 1 : 0;
+    }
+    tests_left--;
+    matrix_destroy(matrix);
+
+    printf("  2x2 matrix_diagonalize test 1: ");
+    matrix = matrix_create(2, 2);
+    if (matrix == NULL)
+        goto test_matrix_diagonalize_skip_remaining_tests;
+
+    matrix_set(matrix, 1, 1, MAT_T(5.0));
+    matrix_set(matrix, 1, 2, MAT_T(2.0));
+
+    matrix_set(matrix, 2, 1, MAT_T(4.0));
+    matrix_set(matrix, 2, 2, MAT_T(3.0));
+
+    determinant = matrix_determinant(matrix);
+    matrix_diagonalize(matrix);
+    if (!matrix_is_diagonal(matrix)) {
+        tests_failed++;
+        printf(RED "Failure: matrix is not diagonal" RESET "\n");
+    } else {
+        tests_failed += mat_t_assert_equal(determinant, matrix_determinant(matrix)) != 0 ? 1 : 0;
+    }
+    tests_left--;
+    matrix_destroy(matrix);
+
+    printf("  2x2 matrix_diagonalize test 2: ");
+    matrix = matrix_create(2, 2);
+    if (matrix == NULL)
+        goto test_matrix_diagonalize_skip_remaining_tests;
+
+    matrix_set(matrix, 1, 1, MAT_T(5.0));
+    matrix_set(matrix, 1, 2, MAT_T(2.0));
+
+    matrix_set(matrix, 2, 1, MAT_T(4.0));
+    matrix_set(matrix, 2, 2, MAT_T(0.0));
+
+    determinant = matrix_determinant(matrix);
+    matrix_diagonalize(matrix);
+    if (!matrix_is_diagonal(matrix)) {
+        tests_failed++;
+        printf(RED "Failure: matrix is not diagonal" RESET "\n");
+    } else {
+        tests_failed += mat_t_assert_equal(determinant, matrix_determinant(matrix)) != 0 ? 1 : 0;
+    }
+    tests_left--;
+    matrix_destroy(matrix);
+
+    printf("  3x3 matrix_diagonalize test: ");
+    matrix = matrix_create(3, 3);
+    if (matrix == NULL)
+        goto test_matrix_diagonalize_skip_remaining_tests;
+
+    matrix_set(matrix, 1, 1, MAT_T(1.0));
+    matrix_set(matrix, 1, 2, MAT_T(-2.0));
+    matrix_set(matrix, 1, 3, MAT_T(3.0));
+
+    matrix_set(matrix, 2, 1, MAT_T(2.0));
+    matrix_set(matrix, 2, 2, MAT_T(0.0));
+    matrix_set(matrix, 2, 3, MAT_T(3.0));
+
+    matrix_set(matrix, 3, 1, MAT_T(1.0));
+    matrix_set(matrix, 3, 2, MAT_T(5.0));
+    matrix_set(matrix, 3, 3, MAT_T(4.0));
+
+    determinant = matrix_determinant(matrix);
+    matrix_diagonalize(matrix);
+    if (!matrix_is_diagonal(matrix)) {
+        tests_failed++;
+        printf(RED "Failure: matrix is not diagonal" RESET "\n");
+    } else {
+        tests_failed += mat_t_assert_equal(determinant, matrix_determinant(matrix)) != 0 ? 1 : 0;
+    }
+    tests_left--;
+    matrix_destroy(matrix);
+
+test_matrix_diagonalize_skip_remaining_tests:
+    printf("Failed: %i\n", tests_failed);
+    printf("Succeeded: %i\n", test_ct - tests_left - tests_failed);
+    printf("Skipped: %i\n", tests_left);
+
+    return tests_failed;
+    
+}
+
 int test_matrix_create_identity(void) {
     const int test_ct = 2;
     int tests_left = test_ct;
@@ -329,5 +545,7 @@ int main(void) {
     total_failures += test_matrix_width();
     total_failures += test_matrix_height();
     total_failures += test_matrix_determinant();
+    total_failures += test_matrix_is_diagonal();
+    total_failures += test_matrix_diagonalize();
     return total_failures;
 }

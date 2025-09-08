@@ -2,6 +2,7 @@
 #define MATRIX_H
 
 #include "mat_t.h"
+#include <stdbool.h>
 #include <stdlib.h>
 
 typedef struct Matrix Matrix;
@@ -33,6 +34,15 @@ mat_t matrix_get(Matrix *matrix, size_t i, size_t j);
  */
 mat_t matrix_determinant(Matrix *matrix);
 
+/**
+ * Return `true` iff `matrix` is diagonal.
+ */
+bool matrix_is_diagonal(Matrix *matrix);
+
+/**
+ * Diagonalize the matrix.
+ */
+void matrix_diagonalize(Matrix *matrix);
 /**
  * Create an identity matrix.
  * Return NULL on failure.
